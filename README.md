@@ -1,167 +1,192 @@
+# Customer Personality Categorization
 
-# Customer Personality Segmentation
+### End-to-End Machine Learning Pipeline | Python | Scikit-learn | MongoDB | AWS S3 | Docker | Azure | GitHub Actions
 
-## Problem statement
+> A practical machine-learning project for customer segmentation and cluster prediction, built with a modular training and prediction pipeline and cloud-oriented deployment components.
 
-In this data science project, you will build a machine learning system which will be able predict the personality of the customer using machine learning algorithms. This project will be very usefull for malls, various stores and companies which are product based. Based on customer's personal details and purchase details, we can cluster them and we can predict the customer's cluster number using classification techniques.
+## 📌 Overview
 
-## Solution Proposed
+This project takes customer profile and purchase data, prepares it for modeling, groups customers into behavioral segments, and uses a classification model to predict the resulting segment for new customer records.
 
-Now the question is how to dynamically predict the cluster of the customer ?. One of the approaches which we can use of machine learning approach, where we can cluster the customer based on the details we have and predict the cluster type based on the domain knowledge and leverage previous customer data to predict the cluster.
+The repository is organized as an end-to-end ML workflow rather than a single notebook: **data ingestion → validation → transformation → clustering → model training → evaluation → model storage → prediction**.
 
-Dataset used
- <html>
-<a href="https://github.com/entbappy/Branching-tutorial/blob/master/marketing_campaign.zip"> Dataset Link</a>
-</html>
+## 🧰 Technology Stack
 
+| Area | Technologies |
+|---|---|
+| Language | Python |
+| Data | Pandas, NumPy |
+| Machine Learning | Scikit-learn, K-Means, Logistic Regression, GridSearchCV |
+| Data Validation | Schema validation, Evidently data-drift profiling |
+| Data Processing | Feature engineering, imputation, scaling, SMOTETomek |
+| Database | MongoDB / MongoDB Atlas |
+| Object Storage | AWS S3 |
+| API / App | Flask, FastAPI, Jinja2 |
+| Containerization | Docker |
+| Cloud Deployment | Azure Web App Service |
+| CI/CD | GitHub Actions |
+| Configuration | YAML-based configuration |
+| Engineering | Logging, custom exceptions, modular components |
 
+## 🔄 Pipeline
 
-## Tech Stack Used
+### 1. Data Ingestion
 
-1. Python
-2. FastAPI
-3. Machine learning algorithms
-4. Docker
-5. MongoDB
+Customer data is read from MongoDB and exported into the feature-store layer. The training pipeline then creates train/test datasets.
 
-## Infrastructure required
+### 2. Data Validation
 
-1. AWS S3
-2. Azure
-3. Github Actions
+The validation layer checks the expected schema and compares train/test data for drift using Evidently profiling.
 
-## How to run
+### 3. Data Transformation
 
-Before you run this project make sure you have MongoDB Atlas account and you have the shipping dataset into it.
+Customer attributes are transformed into modeling features such as age, children, family size, spending and purchase-related variables. Missing values are handled and numerical features are prepared for modeling.
 
-Step 1. Cloning the repository.
+### 4. Customer Clustering
 
+K-Means is used to create customer groups from the transformed behavioral features.
+
+### 5. Model Training
+
+Logistic Regression is trained to map customer features to the generated cluster labels. `GridSearchCV` is used for hyperparameter search.
+
+### 6. Model Evaluation
+
+The trained model is evaluated against the configured metric and accepted only when it meets the pipeline's comparison logic.
+
+### 7. Model Pushing
+
+Accepted model artifacts can be stored in AWS S3 through the repository's cloud-storage layer.
+
+### 8. Prediction
+
+The prediction pipeline converts incoming customer attributes into the configured schema, loads the trained estimator from the model store, and returns the predicted customer segment.
+
+## 🗂️ Project Structure
+
+```text
+Customer-Categorizer/
+├── config/                     # Schema and model configuration
+├── docs/                       # Setup and architecture documentation
+├── flowchart/                  # Pipeline diagrams
+├── notebooks/                  # EDA / experimentation notebooks
+├── src/
+│   ├── cloud_storage/          # AWS S3 integration
+│   ├── components/             # Ingestion, validation, transformation, ML
+│   ├── configuration/          # AWS / MongoDB connections
+│   ├── constant/               # Pipeline and application constants
+│   ├── data_access/            # MongoDB data access
+│   ├── entity/                 # Configuration and artifact objects
+│   ├── exception/              # Custom exception handling
+│   ├── logger/                 # Logging
+│   ├── ml/                     # Estimators and metrics
+│   ├── pipeline/               # Train and prediction pipelines
+│   └── utils/                  # Shared utilities
+├── static/                     # Application CSS
+├── templates/                  # Application templates
+├── app.py
+├── Dockerfile
+├── requirements.txt
+└── setup.py
 ```
 
-git clone https://github.com/Machine-Learning-01/Customer_segmentation.git
+## ⚙️ Local Setup
 
+### 1. Clone
+
+```bash
+git clone https://github.com/mohdsaif13/Customer-Categorizer.git
+cd Customer-Categorizer
 ```
 
-Step 2. Create a conda environment.
+### 2. Create an environment
 
+```bash
+python -m venv venv
 ```
 
-conda create --prefix venv python=3.7 -y
+Windows:
 
+```bash
+venv\Scripts\activate
 ```
 
+macOS / Linux:
+
+```bash
+source venv/bin/activate
 ```
 
-conda activate venv/
+### 3. Install dependencies
 
-```
-
-Step 3. Install the requirements
-
-```
-
+```bash
 pip install -r requirements.txt
-
 ```
 
-Step 4. Export the environment variable
+### 4. Configure services
+
+The pipeline expects the required database/cloud settings to be supplied through environment variables/configuration used by the application.
+
+Typical services used by the repository include:
+
+- MongoDB / MongoDB Atlas
+- AWS S3
+- Azure Web App Service
+
+Do not commit credentials or secret keys.
+
+## 🐳 Docker
+
+Build the image:
 
 ```bash
-
-export AWS_ACCESS_KEY_ID=<AWS_ACCESS_KEY_ID>
-
-
-export AWS_SECRET_ACCESS_KEY=<AWS_SECRET_ACCESS_KEY>
-
-
-export AWS_DEFAULT_REGION=<AWS_DEFAULT_REGION>
-
-
-export MONGODB_URL= <MONGODB_URL>
-
-
+docker build -t customer-categorizer .
 ```
 
-Step 5. Run the application server
-
-```
-
-python app.py
-
-```
-
-Step 6. Train application
+Run it:
 
 ```bash
-
-http://localhost:5000/train
-
+docker run -p 5000:5000 customer-categorizer
 ```
 
-Step 7. Prediction application
+The exact application route depends on the configured Flask app entry point and environment.
 
-```bash
+## ☁️ CI/CD
 
-http://localhost:5000/predict
+The repository includes a GitHub Actions workflow that builds a Docker image, pushes it to Azure Container Registry, and deploys the image to Azure Web App Service using GitHub repository secrets.
 
-```
+## 📊 Modeling Notes
 
-## Run locally
+The repository's configuration currently defines:
 
-1. Check if the Dockerfile is available in the project directory
-2. Build the Docker image
+- **K-Means** for customer clustering
+- **Logistic Regression** for cluster prediction
+- **GridSearchCV** for hyperparameter search
 
-```
+The feature pipeline also includes preprocessing, imputation, scaling and class-balancing utilities.
 
-docker build --build-arg AWS_ACCESS_KEY_ID=<AWS_ACCESS_KEY_ID> --build-arg AWS_SECRET_ACCESS_KEY=<AWS_SECRET_ACCESS_KEY> --build-arg AWS_DEFAULT_REGION=<AWS_DEFAULT_REGION> --build-arg MONGODB_URL=<MONGODB_URL> . 
+## 🔐 Engineering Practices
 
-```
+- YAML-based configuration keeps model and schema settings separate from application code.
+- Custom logging and exception classes are used across pipeline components.
+- Training and prediction are separated into independent pipelines.
+- Model artifacts are represented explicitly and can be pushed to cloud storage.
+- Docker and GitHub Actions make the deployment path reproducible.
 
-3. Run the Docker image
+## ⚠️ Notes
 
-```
+This repository is a portfolio/learning implementation of a production-style ML pipeline. Cloud services and credentials are environment-dependent, so the complete deployment path may require your own MongoDB, AWS and Azure configuration.
 
-docker run -d -p 5000:5000 <IMAGE_NAME>
+## 👤 Author
 
-```
+**Md Saif Ali**
 
-## Project Architecture -
+Data Science | Machine Learning | AI/ML
 
-![WhatsApp Image 2022-09-22 at 15 29 19](https://user-images.githubusercontent.com/71321529/192722336-54016f79-89ef-4c8c-9d71-a6e91ebab03f.jpeg)
+[GitHub](https://github.com/mohdsaif13) · [LinkedIn](https://www.linkedin.com/in/md-saif-ali-a3250825b/)
 
-## Data Collection Architecture -
+---
 
-![WhatsApp Image 2022-09-22 at 15 29 10](https://user-images.githubusercontent.com/71321529/192721926-de265f9b-f301-4943-ac7d-948bff7be9a0.jpeg)
+### ⭐ Project focus
 
-## Deployment Architecture -
-
-![deployment](https://user-images.githubusercontent.com/104005791/199660875-c8e63457-432a-44cb-8a95-800870f3da15.png)
-
-## Models Used
-
-* [K-Means](https://www.javatpoint.com/k-means-clustering-algorithm-in-machine-learning)
-* [LogisticRegression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html)
-
-From these above models after hyperparameter optimization we selected these two models which were K-Means for clustering and Logistic Regression for classification and used the following in Pipeline.
-
-* GridSearchCV is used for Hyperparameter Optimization in the pipeline.
-
-## `src` is the main package folder which contains
-
-**Components** : Contains all components of Machine Learning Project
-
-- Data Ingestion
-- Data Validation
-- Data Transformation
-- Data Clustering
-- Model Trainer
-- Model Evaluation
-- Model Pusher
-
-**Custom Logger and Exceptions** are used in the Project for better debugging purposes.
-
-## Conclusion
-
-- This Project can be used in real-life by Users.
-
-
+**Customer data → validation → feature engineering → clustering → classification → evaluation → cloud model storage → prediction**
